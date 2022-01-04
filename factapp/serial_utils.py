@@ -1,7 +1,12 @@
+# Django Imports
+from django.contrib.auth.models import User
+# DRF Imports
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
+# FactApp Imports
 from factapp.models import *
-from django.contrib.auth.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -42,6 +47,18 @@ class ClientSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class SellerSerializer(serializers.ModelSerializer):
+
+    def create(self, validated_data):
+        seller = Seller.objects.create(**validated_data)
+        Token.objects.create(user=seller.user)
+        return seller
+
+    class Meta:
+        model = Seller
+        fields = '__all__'
+
+
 class TypeProductSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
         required=True,
@@ -60,4 +77,16 @@ class TypeProductSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ('name', 'code')
+        fields = ('name', 'code', 'unit_price', 'type_product', 'quantity')
+
+
+class InvoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invoice
+        fields = ('seller', 'client')
+
+
+class InvoiceDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InvoiceDetail
+        fields = ('invoice', 'product', 'quantity')
